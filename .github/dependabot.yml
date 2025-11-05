@@ -1,0 +1,51 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "williamxwood"
+    assignees:
+      - "williamxwood"
+    labels:
+      - "dependencies"
+      - "automated"
+    
+    # Separate security updates (apply immediately)
+    allow:
+      - dependency-type: "all"
+    
+    # Group non-security updates by type
+    groups:
+      # Patch updates (1.18.0 → 1.18.1) - low risk
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      
+      # Minor updates (1.18.0 → 1.19.0) - medium risk
+      minor-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+    
+    # Major updates (1.x → 2.x) will be separate PRs - high risk
+    
+    # Ignore alpha/beta versions
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+        # Will still create PRs, but won't auto-merge
+    
+    # Custom commit message
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
