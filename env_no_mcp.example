@@ -8,11 +8,13 @@ SNOWFLAKE_ACCOUNT=your_account
 SNOWFLAKE_WAREHOUSE=ANALYTICS
 SNOWFLAKE_DATABASE=analytics
 SNOWFLAKE_SCHEMA=analytics
-SNOWFLAKE_AUTHENTICATOR=externalbrowser
 
-# Or for key-based auth:
-# SNOWFLAKE_PRIVATE_KEY_PATH=/path/to/key.pem
-# SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=your-passphrase
+# Authentication options (choose one):
+# Option 1: Password authentication
+SNOWFLAKE_PASSWORD=your_password
+
+# Option 2: Browser-based SSO (comment out SNOWFLAKE_PASSWORD and uncomment below)
+# SNOWFLAKE_AUTHENTICATOR=externalbrowser
 
 # LLM API Key
 ANTHROPIC_API_KEY=sk-ant-your-key-here

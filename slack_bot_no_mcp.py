@@ -33,14 +33,24 @@ class DatabaseTools:
     def __init__(self):
         # Initialize your database connection
         import snowflake.connector
-        self.conn = snowflake.connector.connect(
-            user=os.environ.get("SNOWFLAKE_USER"),
-            account=os.environ.get("SNOWFLAKE_ACCOUNT"),
-            warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE"),
-            database=os.environ.get("SNOWFLAKE_DATABASE"),
-            schema=os.environ.get("SNOWFLAKE_SCHEMA"),
-            authenticator=os.environ.get("SNOWFLAKE_AUTHENTICATOR", "externalbrowser")
-        )
+        
+        # Build connection parameters
+        conn_params = {
+            "user": os.environ.get("SNOWFLAKE_USER"),
+            "account": os.environ.get("SNOWFLAKE_ACCOUNT"),
+            "warehouse": os.environ.get("SNOWFLAKE_WAREHOUSE"),
+            "database": os.environ.get("SNOWFLAKE_DATABASE"),
+            "schema": os.environ.get("SNOWFLAKE_SCHEMA"),
+        }
+        
+        # Use password auth if provided, otherwise use externalbrowser
+        password = os.environ.get("SNOWFLAKE_PASSWORD")
+        if password:
+            conn_params["password"] = password
+        else:
+            conn_params["authenticator"] = os.environ.get("SNOWFLAKE_AUTHENTICATOR", "externalbrowser")
+        
+        self.conn = snowflake.connector.connect(**conn_params)
     
     def execute_query(self, sql: str) -> List[Dict]:
         """
@@ -85,14 +95,27 @@ class DatabaseTools:
     
     def get_table_columns(self, table_name: str) -> List[Dict]:
         """Get columns for a specific table"""
-        sql = f"""
+        sql = """
         SELECT column_name, data_type 
         FROM information_schema.columns 
-        WHERE table_name = '{table_name}'
+        WHERE table_name = %s
         AND table_schema = CURRENT_SCHEMA()
         ORDER BY ordinal_position
         """
-        return self.execute_query(sql)
+        # Use parameterized query to prevent SQL injection
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(sql, (table_name.upper(),))  # Snowflake stores table names in uppercase
+            
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+            results = [dict(zip(columns, row)) for row in rows]
+            
+            cursor.close()
+            return results
+        except Exception as e:
+            logger.error(f"Failed to get columns for {table_name}: {e}")
+            return []
 
 
 # ============================================================================

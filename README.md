@@ -20,6 +20,19 @@ Bot: The average order value is $87.32 across 3,847 orders this month...
 
 ---
 
+## ⚠️ Production Readiness
+
+| Bot | Status | Confidence | Notes |
+|-----|--------|------------|-------|
+| **Direct SQL** | ✅ Production Ready | 95% | Tested pattern, minor bugs fixed |
+| **FastMCP** | ⚠️ Requires Setup | 70% | Code tested, needs MCP server deployment |
+| **Cortex** | 🧪 Experimental | 40% | Not tested with real Cortex API - expect debugging |
+| **Semantic Layer** | 🧪 Experimental | 30% | Not tested with real dbt API - expect debugging |
+
+**Recommendation:** Start with **Direct SQL** (`slack_bot_no_mcp.py`) for immediate use.
+
+---
+
 ## 🚀 Quick Start (3 Steps)
 
 ### 1. Choose Your Integration
