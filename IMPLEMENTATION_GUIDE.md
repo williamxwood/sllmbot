@@ -201,14 +201,15 @@ python slack_bot_no_mcp.py
 
 ## How It Works
 
-1. User asks: "Top 5 companies by ARR?"
+1. User asks: "Top 5 customers by total spend?"
 2. Bot sends question + schema to LLM
 3. LLM generates SQL:
    ```sql
-   SELECT company, arr 
-   FROM public_comps 
-   WHERE date = (SELECT MAX(date) FROM public_comps)
-   ORDER BY arr DESC 
+   SELECT 
+     c.first_name || ' ' || c.last_name as customer_name,
+     c.total_spent
+   FROM customers c
+   ORDER BY c.total_spent DESC 
    LIMIT 5
    ```
 4. Bot executes SQL
@@ -377,30 +378,33 @@ python slack_bot_cortex.py
 
 ## How It Works
 
-1. **User asks:** "What are the top 5 companies by ARR?"
+1. **User asks:** "What are the top 5 products by revenue?"
 
 2. **Bot generates SQL prompt using Cortex:**
    ```sql
    SELECT SNOWFLAKE.CORTEX.COMPLETE(
        'mistral-large',
-       'Given this schema: companies (company, arr, date)
-        Generate SQL for: top 5 companies by ARR'
+       'Given this schema: products (product_id, product_name), order_items (quantity, unit_price)
+        Generate SQL for: top 5 products by revenue'
    ) as generated_sql
    ```
 
 3. **Cortex returns SQL:**
    ```sql
-   SELECT company, arr
-   FROM companies
-   WHERE date = (SELECT MAX(date) FROM companies)
-   ORDER BY arr DESC
+   SELECT 
+     p.product_name,
+     SUM(oi.quantity * oi.unit_price) as total_revenue
+   FROM products p
+   JOIN order_items oi ON p.product_id = oi.product_id
+   GROUP BY p.product_name
+   ORDER BY total_revenue DESC
    LIMIT 5
    ```
 
 4. **Bot executes the SQL:**
    ```sql
    -- Execute the generated SQL
-   SELECT company, arr FROM ...
+   SELECT p.product_name, SUM(...) FROM ...
    ```
 
 5. **Cortex formats the answer:**
@@ -408,7 +412,7 @@ python slack_bot_cortex.py
    SELECT SNOWFLAKE.CORTEX.COMPLETE(
        'mistral-large',
        'Format this data into a clear answer:
-        [{"company": "Figma", "arr": 998560}, ...]'
+        [{"product_name": "Wireless Headphones", "total_revenue": 24350}, ...]'
    ) as formatted_answer
    ```
 
@@ -523,62 +527,62 @@ The dbt Semantic Layer provides:
 - **Business logic in code** (not SQL)
 - **Consistent definitions** across all tools
 
-Instead of writing SQL, you query by metric name: `avg_ev_ntm_revenue`.
+Instead of writing SQL, you query by metric name: `avg_order_value`.
 
 ## Setup
 
 ### 1. Define Metrics in dbt
 
-In your dbt project (`dbt/models/marts/public_comps.yml`):
+In your dbt project (`dbt/models/marts/orders.yml`):
 
 ```yaml
 semantic_models:
-  - name: public_companies
-    model: ref('public_comps')
+  - name: ecommerce_orders
+    model: ref('orders')
     
     dimensions:
-      - name: date
+      - name: order_date
         type: time
         type_params:
           time_granularity: day
       
-      - name: sector_2
+      - name: customer_segment
         type: categorical
       
-      - name: ticker
+      - name: payment_method
         type: categorical
     
     measures:
-      - name: ev_ntm_revenue
+      - name: order_amount
         agg: avg
-        description: "Average EV/NTM Revenue multiple"
+        description: "Average order value"
       
-      - name: market_cap
+      - name: total_revenue
         agg: sum
-        description: "Total market capitalization"
+        description: "Total revenue"
       
-      - name: arr
-        agg: sum
-        description: "Total ARR across companies"
+      - name: order_count
+        agg: count
+        description: "Total number of orders"
 
 metrics:
-  - name: avg_ev_ntm_revenue
+  - name: avg_order_value
     type: simple
     type_params:
-      measure: ev_ntm_revenue
-    label: "Average EV/NTM Revenue"
+      measure: order_amount
+    label: "Average Order Value"
   
-  - name: total_market_cap
+  - name: total_revenue
     type: simple
     type_params:
-      measure: market_cap
-    label: "Total Market Cap"
+      measure: total_revenue
+    label: "Total Revenue"
   
-  - name: total_arr
+  - name: total_orders
     type: simple
     type_params:
-      measure: arr
-    label: "Total ARR"
+      measure: order_count
+    label: "Total Orders"
 ```
 
 ### 2. Enable Semantic Layer in dbt Cloud
@@ -626,7 +630,7 @@ python slack_bot_semantic.py
 
 ## How It Works
 
-1. **User asks:** "What's the average EV/ARR for SaaS companies?"
+1. **User asks:** "What's the average order value by customer segment?"
 
 2. **Bot loads available metrics** from Semantic Layer:
    ```graphql
@@ -642,9 +646,8 @@ python slack_bot_semantic.py
 3. **LLM maps question to metrics:**
    ```json
    {
-       "metrics": ["avg_ev_ntm_revenue"],
-       "group_by": ["sector_2"],
-       "where": [{"dimension": "sector_2", "operator": "=", "value": "SaaS"}],
+       "metrics": ["avg_order_value"],
+       "group_by": ["customer_segment"],
        "limit": 100
    }
    ```
@@ -654,9 +657,8 @@ python slack_bot_semantic.py
    query {
        query(
            environmentId: 12345,
-           metrics: ["avg_ev_ntm_revenue"],
-           groupBy: ["sector_2"],
-           where: [{"dimension": "sector_2", "operator": "=", "value": "SaaS"}]
+           metrics: ["avg_order_value"],
+           groupBy: ["customer_segment"]
        ) {
            rows { values }
        }
@@ -678,16 +680,16 @@ query = """
 query {
     metrics(
         environmentId: 12345,
-        metrics: ["avg_ev_ntm_revenue", "total_market_cap"],
-        groupBy: ["sector_2", "date"],
+        metrics: ["avg_order_value", "total_revenue"],
+        groupBy: ["customer_segment", "order_date"],
         where: [
             {
-                "dimension": "date",
+                "dimension": "order_date",
                 "operator": ">=",
                 "value": "2024-01-01"
             }
         ],
-        orderBy: ["avg_ev_ntm_revenue DESC"],
+        orderBy: ["total_revenue DESC"],
         limit: 100
     ) {
         sql
@@ -707,10 +709,10 @@ Bot automatically loads available metrics on startup:
 ```python
 def get_metrics_catalog():
     # Returns:
-    # - avg_ev_ntm_revenue: Average EV/NTM Revenue multiple
-    #   Dimensions: sector_2, date, ticker
-    # - total_market_cap: Total market capitalization
-    #   Dimensions: sector_2, date
+    # - avg_order_value: Average order value across orders
+    #   Dimensions: customer_segment, order_date, payment_method
+    # - total_revenue: Total revenue from all orders
+    #   Dimensions: customer_segment, order_date
     # ...
 ```
 

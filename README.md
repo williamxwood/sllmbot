@@ -7,8 +7,8 @@ Connect Slack to your data using natural language. Choose from 4 integration pat
 Ask questions in Slack, get answers from your database:
 
 ```
-You: @DataBot What's the average EV/ARR for SaaS companies?
-Bot: The average EV/ARR multiple is 8.2x across 47 SaaS companies...
+You: @DataBot What's our average order value this month?
+Bot: The average order value is $87.32 across 3,847 orders this month...
 ```
 
 **How it works:**
@@ -341,11 +341,11 @@ All integrations include:
 All integrations support natural language:
 
 ```
-@DataBot What are the top 10 companies by revenue?
-@DataBot Show me SaaS companies with >70% gross margin
-@DataBot What's the median ARR growth rate?
-@DataBot Compare EV/ARR multiples by sector
-@DataBot Which companies IPO'd in the last 2 years?
+@DataBot What are the top 10 products by revenue?
+@DataBot Show me customers with >5 orders
+@DataBot What's the repeat purchase rate?
+@DataBot Compare average order value by customer segment
+@DataBot Which customers signed up in the last 30 days?
 ```
 
 The LLM automatically:

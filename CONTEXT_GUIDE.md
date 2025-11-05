@@ -765,7 +765,7 @@ schema_context = load_context_file("schema.txt")
 ### For Different Industries
 
 **SaaS/B2B:**
-- Focus on ARR, MRR, churn, expansion revenue
+- Focus on MRR (Monthly Recurring Revenue), churn, expansion revenue
 - Customer cohorts, usage metrics
 - Contract values, renewal rates
 
@@ -788,7 +788,7 @@ schema_context = load_context_file("schema.txt")
 Replace table/column names with your own:
 - `orders` → `transactions`, `bookings`, `subscriptions`
 - `customers` → `users`, `accounts`, `members`
-- `amount` → `revenue`, `gmv`, `arr`
+- `amount` → `revenue`, `gmv`, `total_value`
 
 ### Adapt the Business Context
 Update terminology and benchmarks for your industry:
@@ -797,7 +797,7 @@ Update terminology and benchmarks for your industry:
 "AOV: Average Order Value"
 
 # SaaS
-"ARR: Annual Recurring Revenue"
+"MRR: Monthly Recurring Revenue"
 
 # Marketplace
 "GMV: Gross Merchandise Value"
