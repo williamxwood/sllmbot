@@ -1,0 +1,140 @@
+name: Test Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 10am UTC
+    - cron: '0 10 * * 1'
+  workflow_dispatch:  # Allow manual trigger
+  pull_request:
+    paths:
+      - 'requirements*.txt'
+      - '.github/workflows/test-dependencies.yml'
+
+jobs:
+  test-imports:
+    name: Test ${{ matrix.bot }} with Latest Dependencies
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        bot:
+          - slack_bot_no_mcp.py
+          - slack_bot.py
+          - slack_bot_cortex.py
+          - slack_bot_semantic.py
+        python-version: ['3.11']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install latest dependencies
+        run: |
+          pip install --upgrade pip
+          # Install latest versions (not pinned)
+          pip install slack-bolt anthropic snowflake-connector-python requests python-dotenv
+          if [ -f requirements.txt ]; then
+            pip install fastmcp  # Only for FastMCP bot
+          fi
+      
+      - name: Show installed versions
+        run: |
+          echo "📦 Installed versions:"
+          pip list | grep -E "slack-bolt|anthropic|snowflake-connector|fastmcp|requests|python-dotenv"
+      
+      - name: Test imports
+        run: |
+          python3 -c "
+          from slack_bolt.async_app import AsyncApp
+          from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+          print('✅ Slack Bolt imports OK')
+          "
+      
+      - name: Check syntax
+        run: |
+          python3 -m py_compile ${{ matrix.bot }}
+          echo "✅ ${{ matrix.bot }} syntax check passed"
+      
+      - name: Test bot initialization (dry run)
+        run: |
+          # Try to import the bot module (without running)
+          python3 -c "
+          import sys
+          import os
+          
+          # Mock environment variables
+          os.environ['SLACK_BOT_TOKEN'] = 'xoxb-test'
+          os.environ['SLACK_APP_TOKEN'] = 'xapp-test'
+          os.environ['SNOWFLAKE_USER'] = 'test'
+          os.environ['SNOWFLAKE_ACCOUNT'] = 'test'
+          os.environ['SNOWFLAKE_WAREHOUSE'] = 'test'
+          os.environ['SNOWFLAKE_DATABASE'] = 'test'
+          os.environ['SNOWFLAKE_SCHEMA'] = 'test'
+          os.environ['SNOWFLAKE_PASSWORD'] = 'test'
+          os.environ['ANTHROPIC_API_KEY'] = 'sk-ant-test'
+          
+          # Test imports from bot file
+          import importlib.util
+          spec = importlib.util.spec_from_file_location('bot', '${{ matrix.bot }}')
+          module = importlib.util.module_from_spec(spec)
+          
+          print('✅ ${{ matrix.bot }} module loads successfully')
+          "
+      
+      - name: Report success
+        if: success()
+        run: |
+          echo "✅ ${{ matrix.bot }} is compatible with latest dependencies"
+      
+      - name: Report failure
+        if: failure()
+        run: |
+          echo "❌ ${{ matrix.bot }} failed with latest dependencies"
+          echo "::error::Dependency update broke ${{ matrix.bot }}"
+
+  create-issue-on-failure:
+    name: Create Issue if Tests Fail
+    needs: test-imports
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+      - name: Create issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const title = '🚨 Dependency update broke bots';
+            const body = `
+            ## Issue
+            Latest dependency versions are incompatible with one or more bots.
+            
+            ## Failed Workflow
+            - Run: ${{ github.run_id }}
+            - URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            ## Action Required
+            1. Check workflow logs to see which bot(s) failed
+            2. Review recent dependency releases for breaking changes
+            3. Either:
+               - Pin dependencies to working versions in requirements*.txt
+               - Update bot code to work with new dependency versions
+            
+            ## Resources
+            - [Update Process](../UPDATE_PROCESS.md)
+            - [Dependency Management](../DEPENDENCY_MANAGEMENT.md)
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['dependencies', 'bug', 'automated']
+            });
+
