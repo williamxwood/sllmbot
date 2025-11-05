@@ -4,7 +4,7 @@ Connect Slack to your data using natural language. Choose from 4 integration pat
 
 ## 💡 Why This Exists
 
-I built this Slackbot internally for my team to query our analytics database using natural language. After seeing a bunch of companies offering similar products as paid SaaS solutions, I decided to open source what we built—along with several variations—to help as many people as possible access their data without vendor lock-in or monthly subscriptions.
+I built this Slackbot internally for my team to query our analytics database using natural language. After seeing a bunch of companies offering similar products as paid SaaS solutions, I decided to open source what we built, along with several variations, to help as many people as possible access their data without vendor lock-in or monthly subscriptions.
 
 This repo includes 4 different integration approaches, from simple direct SQL to enterprise-grade semantic layers, so you can choose what fits your needs and infrastructure.
 
