@@ -398,7 +398,7 @@ python slack_bot_no_mcp.py
 @YourBot hello
 
 # Ask a real question:
-@YourBot What are the top 5 companies?
+@YourBot What are the top 5 products by revenue?
 ```
 
 ---
