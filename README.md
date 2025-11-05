@@ -56,10 +56,30 @@ Bot: The average order value is $87.32 across 3,847 orders this month...
 
 ### 2. Install & Configure
 
+**Option A: Interactive Setup (Recommended)**
 ```bash
 # Clone repo
-git clone <this-repo>
-cd slackbot_oss
+git clone https://github.com/williamxwood/slackbot.git
+cd slackbot
+
+# Run interactive setup
+./scripts/setup.sh
+
+# Follow the prompts to:
+# 1. Choose your integration (Direct SQL, FastMCP, Cortex, or Semantic)
+# 2. Enter credentials (securely prompted)
+# 3. Auto-install dependencies
+# 4. Test connections
+
+# Run the bot
+python slack_bot_no_mcp.py  # Or whichever you chose
+```
+
+**Option B: Manual Setup**
+```bash
+# Clone repo
+git clone https://github.com/williamxwood/slackbot.git
+cd slackbot
 
 # Choose your integration and copy env file
 cp env_no_mcp.example .env    # Direct SQL (recommended for most)
@@ -81,9 +101,119 @@ python slack_bot_no_mcp.py  # Direct SQL
 # etc.
 ```
 
-### 3. Deploy to Heroku
+### 3. Test & Deploy
 
+```bash
+# Test locally first
+python slack_bot_no_mcp.py  # Or whichever you set up
+
+# In Slack:
+@YourBot hello
+@YourBot What are the top 5 products by revenue?
+```
+
+**Deploy to production:**  
 See [HEROKU_DEPLOYMENT.md](HEROKU_DEPLOYMENT.md) for detailed deployment instructions.
+
+---
+
+## 🎬 Interactive Setup Demo
+
+Here's what the setup experience looks like:
+
+```bash
+$ ./scripts/setup.sh
+
+======================================================================
+  🚀 Slackbot OSS - Interactive Setup
+======================================================================
+
+Welcome! This script will help you set up your Slackbot...
+
+Press Enter to continue...
+
+──────────────────────────────────────────────────────────────────────
+Step 1: Choose Bot Integration
+──────────────────────────────────────────────────────────────────────
+
+Which integration do you want to use?
+  1. Direct SQL (Recommended) - Simple, works immediately
+  2. FastMCP - For multi-app platforms (requires MCP server)
+  3. Snowflake Cortex - Use Snowflake's built-in LLM (experimental)
+  4. dbt Semantic Layer - Query governed metrics (experimental)
+
+Enter choice (1-4): 1
+
+──────────────────────────────────────────────────────────────────────
+Step 2: Direct SQL Bot Configuration
+──────────────────────────────────────────────────────────────────────
+
+📱 Slack Configuration:
+Slack Bot Token (xoxb-...): xoxb-1234-5678-abcd
+Slack App Token (xapp-...): xapp-1-A123-456-xyz
+
+🧪 Testing Slack connection...
+✅ Connected as: DataBot
+
+❄️  Snowflake Configuration:
+Snowflake Username: john_doe
+Snowflake Account (e.g., abc123.us-east-1): mycompany.us-west-2
+Warehouse Name [COMPUTE_WH]: ANALYTICS_WH
+Database Name: ANALYTICS
+Schema Name [PUBLIC]: PUBLIC
+
+🔐 Snowflake Authentication Method:
+  1. Password authentication (recommended for Heroku)
+  2. Browser SSO (for local development)
+
+Enter choice (1-2): 1
+Snowflake Password: ********
+
+🧪 Testing Snowflake connection...
+✅ Connected to Snowflake (version 8.15.0)
+
+🤖 LLM Configuration:
+Anthropic API Key (sk-ant-...): ********
+
+🧪 Testing Anthropic API key...
+✅ Anthropic API key format valid
+
+──────────────────────────────────────────────────────────────────────
+Step 3: Save Configuration
+──────────────────────────────────────────────────────────────────────
+
+✅ Configuration saved to .env
+✅ File permissions set to 600 (owner read/write only)
+
+──────────────────────────────────────────────────────────────────────
+Step 4: Install Dependencies
+──────────────────────────────────────────────────────────────────────
+
+Install Python dependencies now? (Y/n): y
+
+📦 Installing dependencies from requirements_no_mcp.txt...
+✅ Dependencies installed successfully
+
+──────────────────────────────────────────────────────────────────────
+Step 5: You're All Set! 🎉
+──────────────────────────────────────────────────────────────────────
+
+✅ Configuration complete!
+
+Next steps:
+
+1. Test locally:
+   python slack_bot_no_mcp.py
+
+2. In Slack, test with:
+   @YourBot hello
+   @YourBot What are the top 5 products by revenue?
+
+3. Deploy to production:
+   See HEROKU_DEPLOYMENT.md for deployment instructions
+
+Enjoy your Slackbot! 🚀
+```
 
 ---
 
