@@ -1,0 +1,15 @@
+# Slack Configuration
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_APP_TOKEN=xapp-your-app-token
+
+# dbt Cloud Semantic Layer
+DBT_CLOUD_SERVICE_TOKEN=your_service_token
+DBT_CLOUD_ENVIRONMENT_ID=12345
+
+# LLM for mapping questions (Claude)
+ANTHROPIC_API_KEY=sk-ant-your-key
+LLM_MODEL=claude-3-5-sonnet-20241022
+
+# Optional: Show SQL in responses
+SHOW_SQL=false
+

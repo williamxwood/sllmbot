@@ -1,0 +1,16 @@
+# Slack Integration
+slack-bolt>=1.18.0
+
+# FastMCP Client
+fastmcp>=2.0.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# LLM Providers (choose one or more)
+anthropic>=0.40.0  # For Claude
+openai>=1.0.0      # For GPT-4
+
+# Async HTTP
+httpx>=0.24.0
+

@@ -1,0 +1,19 @@
+# Slack Configuration
+SLACK_BOT_TOKEN=xoxb-your-bot-token-here
+SLACK_APP_TOKEN=xapp-your-app-token-here
+
+# Direct Database Connection (No FastMCP needed)
+SNOWFLAKE_USER=your_username
+SNOWFLAKE_ACCOUNT=your_account
+SNOWFLAKE_WAREHOUSE=ANALYTICS
+SNOWFLAKE_DATABASE=analytics
+SNOWFLAKE_SCHEMA=analytics
+SNOWFLAKE_AUTHENTICATOR=externalbrowser
+
+# Or for key-based auth:
+# SNOWFLAKE_PRIVATE_KEY_PATH=/path/to/key.pem
+# SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=your-passphrase
+
+# LLM API Key
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+
