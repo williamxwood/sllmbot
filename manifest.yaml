@@ -1,0 +1,44 @@
+name: slackbot
+purpose: Slack bot for natural language data queries against Snowflake. Four independent implementations with different integration patterns.
+
+implementations:
+  - script: slack_bot.py
+    pattern: FastMCP
+    does: Routes queries through FastMCP server — LLM-agnostic (Claude or GPT-4)
+    classes:
+      - LLMProvider: Abstract base for pluggable LLMs
+      - AnthropicProvider(api_key): Claude API integration
+      - OpenAIProvider(api_key): GPT-4 integration
+      - FastMCPClient(server_url, token): MCP server client
+      - SlackBot(llm, mcp): Main bot — initialize(), handle_message()
+    env_vars: [SLACK_BOT_TOKEN, ANTHROPIC_API_KEY or OPENAI_API_KEY, MCP_SERVER_URL, MCP_AUTH_TOKEN]
+
+  - script: slack_bot_no_mcp.py
+    pattern: Direct SQL
+    does: Claude generates SQL, executes directly against Snowflake
+    classes:
+      - DatabaseTools(): execute_query(sql), get_available_tables(), get_table_columns(table)
+      - LLMWithDirectDB(api_key): Claude with direct SQL execution
+    env_vars: [SLACK_BOT_TOKEN, ANTHROPIC_API_KEY, SNOWFLAKE_*]
+
+  - script: slack_bot_cortex.py
+    pattern: Snowflake Cortex
+    does: Snowflake Cortex LLM generates and executes SQL (text-to-SQL)
+    classes:
+      - SnowflakeCortexProvider(): _get_schema_info(), query_with_cortex(user_question)
+    env_vars: [SLACK_BOT_TOKEN, SNOWFLAKE_*, CORTEX_MODEL (mistral-large|llama3-70b)]
+
+  - script: slack_bot_semantic.py
+    pattern: dbt Semantic Layer
+    does: Routes queries through dbt Cloud Semantic Layer GraphQL API
+    classes:
+      - DBTSemanticLayerProvider(): _get_metrics_catalog(), query_metrics(metrics, group_by, where, limit)
+    env_vars: [SLACK_BOT_TOKEN, DBT_CLOUD_SERVICE_TOKEN, DBT_CLOUD_ENVIRONMENT_ID, ANTHROPIC_API_KEY]
+
+reads_from:
+  - Snowflake: analytics.analytics.* (all patterns except dbt semantic)
+  - dbt Cloud Semantic Layer API (semantic pattern only)
+  - FastMCP server (FastMCP pattern only)
+
+snowflake_user: Varies by pattern (env var configured)
+schedule: Always-on (Slack Socket Mode)
