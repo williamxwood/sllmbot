@@ -8,7 +8,7 @@ fastmcp>=2.0.0
 python-dotenv>=1.0.0
 
 # LLM Providers (choose one or more)
-anthropic>=0.40.0  # For Claude
+anthropic>=0.97.0  # For Claude
 openai>=1.0.0      # For GPT-4
 
 # Async HTTP
