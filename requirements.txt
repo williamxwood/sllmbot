@@ -1,5 +1,5 @@
 # Slack Integration
-slack-bolt>=1.18.0
+slack-bolt>=1.28.0
 
 # FastMCP Client
 fastmcp>=2.0.0
