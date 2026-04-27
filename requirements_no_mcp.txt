@@ -2,7 +2,7 @@
 slack-bolt>=1.18.0
 
 # Database (choose what you use)
-snowflake-connector-python>=3.0.0  # For Snowflake
+snowflake-connector-python>=3.18.0  # For Snowflake
 # psycopg2-binary>=2.9.0           # For Postgres
 # pymysql>=1.0.0                   # For MySQL
 
