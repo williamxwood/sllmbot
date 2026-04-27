@@ -9,7 +9,7 @@ python-dotenv>=1.0.0
 
 # LLM Providers (choose one or more)
 anthropic>=0.40.0  # For Claude
-openai>=1.0.0      # For GPT-4
+openai>=1.109.1      # For GPT-4
 
 # Async HTTP
 httpx>=0.24.0
