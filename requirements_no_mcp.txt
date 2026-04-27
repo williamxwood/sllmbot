@@ -7,7 +7,7 @@ snowflake-connector-python>=3.0.0  # For Snowflake
 # pymysql>=1.0.0                   # For MySQL
 
 # LLM
-anthropic>=0.40.0
+anthropic>=0.97.0
 
 # Environment
 python-dotenv>=1.0.0
